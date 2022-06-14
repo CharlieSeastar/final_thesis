@@ -2,7 +2,6 @@ import json
 import os
 import numpy as np
 
-
 subject_root = "courseMetadata"
 student_link_prefix = "https://www.classcentral.com"
 
@@ -47,10 +46,10 @@ def total_err(r, p, q):
         for student_url, rating in course_map[course_url]["ratings"]:
             count += 1
             col_index = student_url_index[student_url]
-            
+
             user_bias = student_map[student_url]["rating_bias"]
             item_bias = course_map[course_url]["rating_bias"]
-            
+
             predict = float(np.dot(q[row_index], p[col_index]))
             err = float(r[row_index][col_index]) - predict - user_bias - item_bias
             err_sum += err ** 2
@@ -182,7 +181,7 @@ def fair_par(r, p, q):
             else:
                 disadv_count += 1
                 disadv_group += predict
-    return round(abs(disadv_group/disadv_count - adv_group/adv_count), 3)
+    return round(abs(disadv_group / disadv_count - adv_group / adv_count), 3)
 
 
 def huber_loss(e, d=1):
@@ -229,7 +228,7 @@ if __name__ == '__main__':
         course_map[course_url]["average_rating"] = course_rating_total / len(review_info)
         total_rating += course_rating_total
         total_review += len(review_info)
-    average_rating_all = total_rating/total_review
+    average_rating_all = total_rating / total_review
 
     for key in student_map:
         student_rating_total = 0
@@ -240,7 +239,6 @@ if __name__ == '__main__':
 
     for key in course_map:
         course_map[key]["rating_bias"] = course_map[key]["average_rating"] - average_rating_all
-
 
     i = 0
     for key in student_map:
@@ -259,6 +257,7 @@ if __name__ == '__main__':
     lamda = 0.001
     iteration = 250
     print("Unfairness\t\tError\t\tValue\t\tAbsolute\t\tUnderestimation\t\tOverestimation\t\tNon-Parity")
+
 
     def helper(fairness_matrix=None):
         r = np.zeros((course_count, student_count))
@@ -289,17 +288,22 @@ if __name__ == '__main__':
                     item_bias = course_map[course_url]["rating_bias"]
 
                     err = float(r[row_index][col_index]) - predict - user_bias - item_bias
-                    tmp_q = q[row_index] + 2 * alpha * (p[col_index] * err - lamda / 2 * q[row_index] - huber_loss(fairness) * q[row_index])
-                    tmp_p = p[col_index] + 2 * alpha * (q[row_index] * err - lamda / 2 * p[col_index] - huber_loss(fairness) * p[col_index])
+                    tmp_q = q[row_index] + 2 * alpha * (
+                                p[col_index] * err - lamda / 2 * q[row_index] - huber_loss(fairness) * q[row_index])
+                    tmp_p = p[col_index] + 2 * alpha * (
+                                q[row_index] * err - lamda / 2 * p[col_index] - huber_loss(fairness) * p[col_index])
                     q[row_index] = tmp_q
                     p[col_index] = tmp_p
 
-                    course_map[course_url]["rating_bias"] = user_bias + 2 * alpha * (err - lamda / 2 * user_bias - huber_loss(fairness) * user_bias)
-                    student_map[student_url]["rating_bias"] = item_bias + 2 * alpha * (err - lamda / 2 * item_bias - huber_loss(fairness) * item_bias)
+                    course_map[course_url]["rating_bias"] = user_bias + 2 * alpha * (
+                                err - lamda / 2 * user_bias - huber_loss(fairness) * user_bias)
+                    student_map[student_url]["rating_bias"] = item_bias + 2 * alpha * (
+                                err - lamda / 2 * item_bias - huber_loss(fairness) * item_bias)
 
         print(matrix_name + "\t\t" + str(total_err(r, p, q)) + "\t\t" + str(fair_val_all(r, p, q)) + "\t\t"
               + str(fair_abs_all(r, p, q)) + "\t\t" + str(fair_under_all(r, p, q)) + "\t\t"
               + str(fair_over_all(r, p, q)) + "\t\t" + str(fair_par(r, p, q)))
+
 
     helper(None)
     helper(fair_val_all)
@@ -341,3 +345,5 @@ if __name__ == '__main__':
     # for i in range(course_count):
     #     total += fair_res[i][0]
     # print(total/course_count)
+
+    # test purpose
